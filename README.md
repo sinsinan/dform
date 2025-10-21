@@ -14,7 +14,7 @@ Version is very important when building wirelevel protocols as we might not be a
 It is good to have a support for compression in a wirelevel protocol as most often network IO is bottleneck for most processing pipelines not cpu.
 
 * 0x00 - none
-* 0x01 - ZSTD
+* 0x01 - LZ4
 
 ### Data
 | Array Length - varint | items |
