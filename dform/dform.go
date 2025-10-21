@@ -63,22 +63,21 @@ func EncodeDFormWithCompression(toSend datainput.DataInput, compressionType comp
 
 func DecodeDForm(data string) (datainput.DataInput, error) {
 	buf := bytes.NewBufferString(data)
-	if version, err := buf.ReadByte(); err != nil {
+	version, err := buf.ReadByte()
+	if err != nil {
 		return nil, err
-	} else {
-		if version != dfromVersion {
-			return nil, errors.New("version missmatch")
-		}
+	}
+	if version != dfromVersion {
+		return nil, errors.New("version missmatch")
 	}
 
 	comTypeByte, err := buf.ReadByte()
 	comType := compression.CompressionType(comTypeByte)
 	if err != nil {
 		return nil, err
-	} else {
-		if !cf.IsCompressionTypePresent(comType) {
-			return nil, errors.New("compression type not found")
-		}
+	}
+	if !cf.IsCompressionTypePresent(comType) {
+		return nil, errors.New("compression type not found")
 	}
 
 	compressedData := buf.Bytes()
@@ -98,5 +97,4 @@ func DecodeDForm(data string) (datainput.DataInput, error) {
 		return nil, errors.New("could not cast output to DataInput")
 	}
 	return di, nil
-
 }
