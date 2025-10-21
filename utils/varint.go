@@ -8,7 +8,7 @@ const msb7maskint = 0b10000000
 
 func EncodeVarUInt32(data uint32) (bytes.Buffer, error) {
 	buffer := bytes.Buffer{}
-	for data > 0x80 {
+	for data >= 0x80 {
 		lsb7 := byte(data & lsb7maskuint32)
 		data = data >> 7
 		if err := buffer.WriteByte(lsb7 | msb7maskint); err != nil {
@@ -21,7 +21,7 @@ func EncodeVarUInt32(data uint32) (bytes.Buffer, error) {
 
 func EncodeVarInt(data int) (bytes.Buffer, error) {
 	buffer := bytes.Buffer{}
-	for data > 0x80 {
+	for data >= 0x80 {
 		lsb7 := byte(data & lsb7maskint)
 		data = data >> 7
 		if err := buffer.WriteByte(lsb7 | msb7maskint); err != nil {
