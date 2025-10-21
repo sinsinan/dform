@@ -49,3 +49,7 @@ func (d *Int32DataType) Encode(buffer *bytes.Buffer, data interface{}) error {
 		return err
 	}
 }
+
+func NewInt32DataType() DataType {
+	return &Int32DataType{}
+}

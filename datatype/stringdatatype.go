@@ -84,3 +84,7 @@ func (d StringDataType) Encode(buffer *bytes.Buffer, data interface{}) error {
 	_, err := buffer.WriteString(sdata)
 	return err
 }
+
+func NewStringDataType() DataType {
+	return &StringDataType{}
+}

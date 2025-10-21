@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"errors"
 	"reflect"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type DatatypeFactory struct {
@@ -39,6 +41,9 @@ func (f DatatypeFactory) Encode(data interface{}, buffer *bytes.Buffer) error {
 	if datatypeProcessor, ok := f.dataTypeProcessors[reflectType]; ok {
 		return datatypeProcessor.Encode(buffer, data)
 	}
+
+	log.Errorf("unsupported data type: %v", reflectType)
+
 	return errors.New("unsupported data type")
 }
 
@@ -47,6 +52,7 @@ func (f DatatypeFactory) Decode(buffer *bytes.Buffer) (interface{}, error) {
 		if datatypeProcessor, ok := f.dataTypeIDProcessors[dataTypeId]; ok {
 			return datatypeProcessor.Decode(buffer)
 		}
+		log.Errorf("unsupported data type id: %v", dataTypeId)
 		return nil, errors.New("unsupported data type")
 	} else {
 		return nil, err

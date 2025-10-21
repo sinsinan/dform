@@ -82,3 +82,7 @@ func (d ArrayDataType) Encode(buffer *bytes.Buffer, data interface{}) error {
 
 	return nil
 }
+
+func NewArrayDataType(df *DatatypeFactory) DataType {
+	return &ArrayDataType{Df: df}
+}

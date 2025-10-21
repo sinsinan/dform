@@ -16,13 +16,13 @@ var cf = compression.NewCompressionFactory()
 const dfromVersion byte = 0x01
 
 func init() {
-	if err := df.Register(&datatype.StringDataType{}); err != nil {
+	if err := df.Register(datatype.NewStringDataType()); err != nil {
 		panic(err)
 	}
-	if err := df.Register(&datatype.Int32DataType{}); err != nil {
+	if err := df.Register(datatype.NewInt32DataType()); err != nil {
 		panic(err)
 	}
-	if err := df.Register(&datatype.ArrayDataType{Df: df}); err != nil {
+	if err := df.Register(datatype.NewArrayDataType(df)); err != nil {
 		panic(err)
 	}
 	if err := cf.Register(compression.NewNoCompession()); err != nil {
@@ -52,12 +52,12 @@ func EncodeDFormWithCompression(toSend datainput.DataInput, compressionType comp
 		return "", err
 	}
 
-	buf.Reset()
-	buf.WriteByte(dfromVersion)
-	buf.WriteByte(byte(compressionType))
-	buf.Write(compressedData)
+	var outputBuf bytes.Buffer
+	outputBuf.WriteByte(dfromVersion)
+	outputBuf.WriteByte(byte(compressionType))
+	outputBuf.Write(compressedData)
 
-	return buf.String(), nil
+	return outputBuf.String(), nil
 
 }
 
@@ -87,8 +87,8 @@ func DecodeDForm(data string) (datainput.DataInput, error) {
 		return nil, err
 	}
 
-	buf = bytes.NewBuffer(dataBytes)
-	dii, err := df.Decode(buf)
+	outputBuf := bytes.NewBuffer(dataBytes)
+	dii, err := df.Decode(outputBuf)
 	if err != nil {
 		return nil, err
 	}
