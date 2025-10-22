@@ -21,13 +21,11 @@ func testCase(t *testing.T, name string, data datainput.DataInput, expectedError
 	}
 
 	for _, compressionType := range compressionTypes {
-		log.Printf("\nTesting with compression: %v", compressionType)
 
 		// Encode
 		encoded, err := dform.EncodeDFormWithCompression(data, compressionType)
 		if err != nil {
 			if expectedError {
-				log.Debugf("Expected error received: %v", err)
 				return
 			}
 			log.Errorf("Unexpected encode error: %v", err)
@@ -39,25 +37,20 @@ func testCase(t *testing.T, name string, data datainput.DataInput, expectedError
 		for i := 0; i < len(encoded); i++ {
 			hexOutput += fmt.Sprintf("%02x ", encoded[i])
 		}
-		log.Printf("Encoded (hex): %s", hexOutput)
+		// log.Printf("Encoded (hex): %s", hexOutput)
 
 		// Decode
 		decoded, err := dform.DecodeDForm(encoded)
 		if err != nil {
 			if expectedError {
-				log.Debugf("Expected error received during decode: %v", err)
 				return
 			}
 			log.Errorf("Unexpected decode error: %v", err)
 			t.Fatalf("decode error: %v", err)
 		}
 
-		log.Printf("Decoded: %#v", decoded)
-
 		// Verify
-		if reflect.DeepEqual(data, decoded) {
-			log.Debugf("Data matches expected.")
-		} else {
+		if !reflect.DeepEqual(data, decoded) {
 			log.Errorf("Data mismatch: expected %#v got %#v", data, decoded)
 			t.Fatalf("data mismatch: expected %#v got %#v", data, decoded)
 		}
@@ -135,6 +128,4 @@ func TestArrayDataTypeVariousCases(t *testing.T) {
 	testCase(t, "Deep Nesting",
 		deepNested,
 		false)
-
-	log.Printf("\n=== All tests completed successfully ===")
 }
