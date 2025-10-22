@@ -15,6 +15,9 @@ var cf = compression.NewCompressionFactory()
 // version 1 of dform
 const dfromVersion byte = 0x01
 
+const minSupportedVersion byte = 0x01
+const maxSupportedVersion byte = 0x01
+
 func init() {
 	if err := df.Register(datatype.NewStringDataType()); err != nil {
 		panic(err)
@@ -67,8 +70,8 @@ func DecodeDForm(data string) (datainput.DataInput, error) {
 	if err != nil {
 		return nil, err
 	}
-	if version != dfromVersion {
-		return nil, errors.New("version missmatch")
+	if version < minSupportedVersion || version > maxSupportedVersion {
+		return nil, errors.New("unsupported dform version")
 	}
 
 	comTypeByte, err := buf.ReadByte()
