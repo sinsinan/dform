@@ -6,9 +6,9 @@ I know I went a bit overboard with the solution, I know what needed was a simple
 ## Project setup
 
 1. install go (1.20+)
-2. unzip dform.zip - `unzip dform.zip`
-3. navigate to dform directory - `cd dform`
-4. install dependencies - `go get ./...`
+2. unzip dform-main.zip - `unzip dform-main.zip`
+3. navigate to dform directory - `cd dform-main`
+4. install dependencies - `go mod tidy`
 5. run tests - `go test ./...`
 
 ## How to use
