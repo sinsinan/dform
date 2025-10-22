@@ -11,6 +11,39 @@ I know I went a bit overboard with the solution, I know what needed was a simple
 4. install dependencies - `go get ./...`
 5. run tests - `go test ./...`
 
+## How to use
+
+Minimal example (encode then decode):
+
+```go
+package main
+
+import (
+  "fmt"
+
+  "github.com/sinsinan/dform/compression"
+  "github.com/sinsinan/dform/datainput"
+  "github.com/sinsinan/dform/dform"
+)
+
+func main() {
+  data := datainput.DataInput{"hello", int32(42)}
+  // encode with LZ4
+  payload, err := dform.EncodeDFormWithCompression(data, compression.CompressionTypeLZ4)
+  if err != nil {
+    panic(err)
+  }
+
+  // decode
+  out, err := dform.DecodeDForm(payload)
+  if err != nil {
+    panic(err)
+  }
+  fmt.Printf("decoded: %#v\n", out)
+}
+```
+
+
 ## Protocol definition
 ```txt
 |--------------------------------|
