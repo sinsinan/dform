@@ -35,7 +35,7 @@ func (f *DatatypeFactory) Register(datatypeToRegister DataType) error {
 	return nil
 }
 
-func (f DatatypeFactory) Encode(data interface{}, buffer *bytes.Buffer) error {
+func (f *DatatypeFactory) Encode(data interface{}, buffer *bytes.Buffer) error {
 	reflectType := reflect.TypeOf(data)
 
 	if datatypeProcessor, ok := f.dataTypeProcessors[reflectType]; ok {
@@ -47,7 +47,7 @@ func (f DatatypeFactory) Encode(data interface{}, buffer *bytes.Buffer) error {
 	return errors.New("unsupported data type")
 }
 
-func (f DatatypeFactory) Decode(buffer *bytes.Buffer) (interface{}, error) {
+func (f *DatatypeFactory) Decode(buffer *bytes.Buffer) (interface{}, error) {
 	if dataTypeId, err := buffer.ReadByte(); err == nil {
 		if datatypeProcessor, ok := f.dataTypeIDProcessors[dataTypeId]; ok {
 			return datatypeProcessor.Decode(buffer)

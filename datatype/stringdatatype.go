@@ -16,7 +16,7 @@ type StringDataType struct {
 }
 
 // decode implements dataType.
-func (d StringDataType) Decode(buffer *bytes.Buffer) (interface{}, error) {
+func (d *StringDataType) Decode(buffer *bytes.Buffer) (interface{}, error) {
 	length, err := utils.DecodeVarInt(buffer)
 	if err != nil {
 		return nil, err
@@ -46,16 +46,16 @@ func (d StringDataType) Decode(buffer *bytes.Buffer) (interface{}, error) {
 }
 
 // getType implements dataType.
-func (d StringDataType) GetType() reflect.Type {
+func (d *StringDataType) GetType() reflect.Type {
 	return reflect.TypeOf("")
 }
 
 // getTypeId implements dataType.
-func (d StringDataType) GetTypeId() byte {
+func (d *StringDataType) GetTypeId() byte {
 	return stringDataTypeId
 }
 
-func (d StringDataType) Encode(buffer *bytes.Buffer, data interface{}) error {
+func (d *StringDataType) Encode(buffer *bytes.Buffer, data interface{}) error {
 	sdata, ok := data.(string)
 	if !ok {
 		return errors.New("invalid data type for stringDataType")

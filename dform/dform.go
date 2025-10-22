@@ -12,7 +12,7 @@ import (
 var df = datatype.NewDatatypeFactory()
 var cf = compression.NewCompressionFactory()
 
-// version takes 1 byte for now
+// version 1 of dform
 const dfromVersion byte = 0x01
 
 func init() {

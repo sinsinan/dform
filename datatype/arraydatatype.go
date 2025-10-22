@@ -16,8 +16,14 @@ type ArrayDataType struct {
 	Df *DatatypeFactory
 }
 
+type frame struct {
+	arr       datainput.DataInput
+	remaining int
+}
+
 // Decode implements DataType.
 func (d *ArrayDataType) Decode(buffer *bytes.Buffer) (interface{}, error) {
+
 	arraySize, err := utils.DecodeVarInt(buffer)
 	if err != nil {
 		return nil, err
@@ -29,16 +35,65 @@ func (d *ArrayDataType) Decode(buffer *bytes.Buffer) (interface{}, error) {
 		return nil, errors.New("array length exceeds maximum limit")
 	}
 
-	arrayData := make(datainput.DataInput, arraySize)
-	for i := 0; i < arraySize; i++ {
-		item, err := d.Df.Decode(buffer)
+	stack := []frame{{remaining: arraySize, arr: make(datainput.DataInput, 0, arraySize)}}
+
+	for len(stack) > 0 {
+		top := &stack[len(stack)-1]
+		if top.remaining == 0 {
+			// this array is now complete, we can pop and attach this to parent or return it if possible
+			completed := top.arr
+			stack = stack[:len(stack)-1]
+			if len(stack) == 0 {
+				return completed, nil
+			}
+			parent := &stack[len(stack)-1]
+			parent.arr = append(parent.arr, completed)
+			parent.remaining--
+			continue
+		}
+
+		typeId, err := buffer.ReadByte()
 		if err != nil {
 			return nil, err
 		}
-		arrayData[i] = item
+
+		if typeId == byte(arrayDataTypeId) {
+			// nested array
+			nestedSize, err := utils.DecodeVarInt(buffer)
+			if err != nil {
+				return nil, err
+			}
+			if nestedSize < 0 {
+				return nil, errors.New("invalid array size")
+			}
+			if nestedSize > maxArrayLength {
+				return nil, errors.New("array length exceeds maximum limit")
+			}
+			if nestedSize == 0 {
+				// no need to push, just append empty array
+				top.arr = append(top.arr, datainput.DataInput{})
+				top.remaining--
+				continue
+			}
+			// push new frame for the non empty nested array
+			stack = append(stack, frame{remaining: nestedSize, arr: make(datainput.DataInput, 0, nestedSize)})
+			continue
+		}
+
+		// if not an array recode and append the item
+		if proc, ok := d.Df.dataTypeIDProcessors[typeId]; ok {
+			item, err := proc.Decode(buffer)
+			if err != nil {
+				return nil, err
+			}
+			top.arr = append(top.arr, item)
+			top.remaining--
+		} else {
+			return nil, errors.New("unsupported data type")
+		}
 	}
 
-	return arrayData, nil
+	return nil, errors.New("decode error, some error occurred")
 }
 
 // GetType implements DataType.
@@ -61,20 +116,51 @@ func (d ArrayDataType) Encode(buffer *bytes.Buffer, data interface{}) error {
 		return errors.New("array length exceeds maximum limit")
 	}
 
-	if err := buffer.WriteByte(byte(arrayDataTypeId)); err != nil {
+	if err := buffer.WriteByte(arrayDataTypeId); err != nil {
 		return err
 	}
-
 	if varIntBuf, err := utils.EncodeVarInt(len(arrayData)); err != nil {
 		return err
 	} else {
-		_, err := buffer.Write(varIntBuf.Bytes())
-		if err != nil {
+		if _, err := buffer.Write(varIntBuf.Bytes()); err != nil {
 			return err
 		}
 	}
 
-	for _, item := range arrayData {
+	stack := []frame{{arr: arrayData, remaining: len(arrayData)}}
+
+	for len(stack) > 0 {
+		top := &stack[len(stack)-1]
+		if top.remaining == 0 {
+			stack = stack[:len(stack)-1]
+			continue
+		}
+
+		item := top.arr[len(top.arr)-top.remaining]
+		top.remaining--
+
+		if nested, ok := item.(datainput.DataInput); ok {
+			if len(nested) > maxArrayLength {
+				return errors.New("array length exceeds maximum limit")
+			}
+			if err := buffer.WriteByte(byte(arrayDataTypeId)); err != nil {
+				return err
+			}
+			if varIntBuf, err := utils.EncodeVarInt(len(nested)); err != nil {
+				return err
+			} else {
+				if _, err := buffer.Write(varIntBuf.Bytes()); err != nil {
+					return err
+				}
+			}
+			if len(nested) == 0 {
+				continue
+			}
+			stack = append(stack, frame{arr: nested, remaining: len(nested)})
+			continue
+		}
+
+		// not an array, encode normally
 		if err := d.Df.Encode(item, buffer); err != nil {
 			return err
 		}
