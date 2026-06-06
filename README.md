@@ -1,6 +1,6 @@
 # DForm
 
-I know I went a bit overboard with the solution, I know what needed was a simple solution but I loved the challenge and wanted to build something good.
+A custom, high-performance binary serialization format in \textbf{Go} utilizing LEB128/ZigZag integer encoding and LZ4 compression to optimize network payload footprint and data pipeline I/O throughput.
 
 
 ## Project setup
